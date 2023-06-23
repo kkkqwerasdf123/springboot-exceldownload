@@ -1,9 +1,10 @@
 package com.neohoon.excel.util;
 
 import lombok.Getter;
-import org.apache.poi.hssf.usermodel.HSSFDataFormat;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
+
+import static com.neohoon.excel.util.ExcelDataFormat.*;
 
 @Getter
 public class ExcelColumn<T> {
@@ -24,15 +25,15 @@ public class ExcelColumn<T> {
         this.dataType = dataType;
         if (dataFormat == null) {
             if (dataType.equals(ExcelDataType.LONG) || dataType.equals(ExcelDataType.INTEGER)) {
-                this.format(HSSFDataFormat.getBuiltinFormat("#,##0"));
+                this.format(NUMBER.getFormat());
             } else if (dataType.equals(ExcelDataType.DOUBLE_PERCENT) || dataType.equals(ExcelDataType.FLOAT_PERCENT)) {
-                this.format(HSSFDataFormat.getBuiltinFormat("0.00%"));
+                this.format(PERCENT.getFormat());
             } else if (dataType.equals(ExcelDataType.DATE)) {
-                this.format(HSSFDataFormat.getBuiltinFormat("m/d/yy"));
+                this.format(DATE.getFormat());
             } else if (dataType.equals(ExcelDataType.DATETIME)) {
-                this.format(HSSFDataFormat.getBuiltinFormat("m/d/yy h:mm"));
+                this.format(DATETIME.getFormat());
             } else if (dataType.equals(ExcelDataType.TIME)) {
-                this.format(HSSFDataFormat.getBuiltinFormat("h:mm"));
+                this.format(TIME.getFormat());
             }
         }
         return this;
