@@ -15,7 +15,7 @@ public interface TestRepository extends JpaRepository<TestEntity, Long> {
             "from TestEntity t order by t.id desc")
     Stream<TestDto> findAllDto();
 
-    @Query("select t from TestEntity t join fetch TestEntityDetail td where t.id > 0 ")
+    @Query("select t from TestEntity t left join fetch TestEntityDetail td where t.id > 0 ")
     Stream<TestEntity> findAllEntity();
 
 }
