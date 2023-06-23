@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <p>total data : <span id="totalData"></span></p>
+
+    <div>
+        <button type="button" id="insertButton">insert test data</button>
+    </div>
+    <div>
+        <a href="/download/excel/dto" download="download">download by dto</a>
+    </div>
+    <div>
+        <a href="/download/excel/entity" download="download">download by entity</a>
+    </div>
+
+
+    <script>
+
+        const insertButton = document.getElementById('insertButton');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            getTotalData();
+            insertButton.addEventListener('click', (event) => {
+                fetch('/test-data', {
+                    method: 'post'
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            getTotalData();
+                        }
+                    });
+            })
+        })
+
+        const getTotalData = () => {
+            fetch('/total-data')
+                .then(response => response.text())
+                .then(text => {
+                    document.getElementById('totalData').innerText = text;
+                })
+        }
+
+    </script>
+</body>
+</html>
