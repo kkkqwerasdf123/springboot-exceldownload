@@ -1,7 +1,5 @@
 package com.neohoon.excel.repository;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -10,13 +8,14 @@ import java.util.Random;
 import java.util.UUID;
 
 @Repository
-@RequiredArgsConstructor
-@Slf4j
 public class TestJdbcRepository {
 
     private final JdbcTemplate template;
     private final Random random = new Random();
 
+    public TestJdbcRepository(JdbcTemplate template) {
+        this.template = template;
+    }
 
     public void insertTestData(int count) {
         StringBuilder sql = new StringBuilder();
@@ -40,6 +39,11 @@ public class TestJdbcRepository {
             }
         }
         template.execute(sql.toString());
+    }
+
+    public void clearData() {
+        String sql = "delete from test_entity";
+        template.execute(sql);
     }
 
 }

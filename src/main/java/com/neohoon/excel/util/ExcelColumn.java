@@ -1,12 +1,10 @@
 package com.neohoon.excel.util;
 
-import lombok.Getter;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
 
 import static com.neohoon.excel.util.ExcelDataFormat.*;
 
-@Getter
 public class ExcelColumn<T> {
 
     private final String name;
@@ -55,5 +53,29 @@ public class ExcelColumn<T> {
 
     protected void setStyle(CellStyle style) {
         this.style = style;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public ExcelDataType getDataType() {
+        return dataType;
+    }
+
+    public Short getDataFormat() {
+        return dataFormat;
+    }
+
+    public HorizontalAlignment getAlignment() {
+        return alignment;
+    }
+
+    public ExcelRowFunction<T, Object> getFunction() {
+        return function;
+    }
+
+    public CellStyle getStyle() {
+        return style;
     }
 }

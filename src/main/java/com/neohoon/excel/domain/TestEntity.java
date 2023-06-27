@@ -1,11 +1,7 @@
 package com.neohoon.excel.domain;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -14,8 +10,6 @@ import java.util.List;
 
 @Entity
 @Table(name = "test_entity")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Getter
 public class TestEntity {
 
     @Id
@@ -39,4 +33,50 @@ public class TestEntity {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "testEntity")
     private List<TestEntityDetail> details = new ArrayList<>();
 
+    protected TestEntity() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getTestString() {
+        return testString;
+    }
+
+    public Long getTestLong() {
+        return testLong;
+    }
+
+    public Integer getTestInteger() {
+        return testInteger;
+    }
+
+    public LocalDateTime getTestDatetime() {
+        return testDatetime;
+    }
+
+    public LocalDate getTestDate() {
+        return testDate;
+    }
+
+    public LocalTime getTestTime() {
+        return testTime;
+    }
+
+    public Double getTestDouble() {
+        return testDouble;
+    }
+
+    public Float getTestFloat() {
+        return testFloat;
+    }
+
+    public String getTestImageUrl() {
+        return testImageUrl;
+    }
+
+    public List<TestEntityDetail> getDetails() {
+        return details;
+    }
 }

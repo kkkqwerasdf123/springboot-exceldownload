@@ -1,14 +1,9 @@
 package com.neohoon.excel.domain;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "test_entity_detail")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Getter
 public class TestEntityDetail {
 
     @Id
@@ -23,5 +18,22 @@ public class TestEntityDetail {
     @JoinColumn(name = "test_entity_id")
     private TestEntity testEntity;
 
+    protected TestEntityDetail() {
+    }
 
+    public Long getId() {
+        return id;
+    }
+
+    public Integer getDetailNo() {
+        return detailNo;
+    }
+
+    public String getDetailName() {
+        return detailName;
+    }
+
+    public TestEntity getTestEntity() {
+        return testEntity;
+    }
 }

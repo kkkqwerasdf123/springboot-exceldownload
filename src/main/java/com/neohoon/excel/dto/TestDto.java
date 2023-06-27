@@ -1,12 +1,9 @@
 package com.neohoon.excel.dto;
 
-import lombok.Data;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-@Data
 public class TestDto {
     private Long id;
 
@@ -31,6 +28,78 @@ public class TestDto {
         this.testDate = testDate;
         this.testTime = testTime;
         this.testDouble = testDouble;
+        this.testFloat = testFloat;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getTestString() {
+        return testString;
+    }
+
+    public void setTestString(String testString) {
+        this.testString = testString;
+    }
+
+    public Long getTestLong() {
+        return testLong;
+    }
+
+    public void setTestLong(Long testLong) {
+        this.testLong = testLong;
+    }
+
+    public Integer getTestInteger() {
+        return testInteger;
+    }
+
+    public void setTestInteger(Integer testInteger) {
+        this.testInteger = testInteger;
+    }
+
+    public LocalDateTime getTestDatetime() {
+        return testDatetime;
+    }
+
+    public void setTestDatetime(LocalDateTime testDatetime) {
+        this.testDatetime = testDatetime;
+    }
+
+    public LocalDate getTestDate() {
+        return testDate;
+    }
+
+    public void setTestDate(LocalDate testDate) {
+        this.testDate = testDate;
+    }
+
+    public LocalTime getTestTime() {
+        return testTime;
+    }
+
+    public void setTestTime(LocalTime testTime) {
+        this.testTime = testTime;
+    }
+
+    public Double getTestDouble() {
+        return testDouble;
+    }
+
+    public void setTestDouble(Double testDouble) {
+        this.testDouble = testDouble;
+    }
+
+    public Float getTestFloat() {
+        return testFloat;
+    }
+
+    public void setTestFloat(Float testFloat) {
         this.testFloat = testFloat;
     }
 }

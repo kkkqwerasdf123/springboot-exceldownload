@@ -7,8 +7,8 @@ import com.neohoon.excel.repository.TestRepository;
 import com.neohoon.excel.service.ExcelService;
 import com.neohoon.excel.util.ExcelHandler;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,18 +18,31 @@ import java.net.URI;
 import java.time.LocalDate;
 
 @RestController
-@RequiredArgsConstructor
 public class TestController {
 
     private final TestJdbcRepository jdbcRepository;
     private final TestRepository repository;
     private final ExcelService excelService;
 
+    public TestController(TestJdbcRepository jdbcRepository, TestRepository repository, ExcelService excelService) {
+        this.jdbcRepository = jdbcRepository;
+        this.repository = repository;
+        this.excelService = excelService;
+    }
 
     @PostMapping("/test-data")
-    public ResponseEntity<Void> insertTestData() {
-        jdbcRepository.insertTestData(50000);
+    public ResponseEntity<Void> insertTestData(Integer count) {
+        if (count < 1 || count > 100000) {
+            return ResponseEntity.badRequest().build();
+        }
+        jdbcRepository.insertTestData(count);
         return ResponseEntity.created(URI.create("/")).build();
+    }
+
+    @DeleteMapping("/test-data")
+    public ResponseEntity<Void> clearTestData() {
+        jdbcRepository.clearData();
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/total-data")

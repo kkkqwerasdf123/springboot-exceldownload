@@ -1,8 +1,8 @@
 package com.neohoon.excel.util;
 
+import jakarta.persistence.Entity;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -10,6 +10,8 @@ import org.apache.poi.xssf.streaming.SXSSFCell;
 import org.apache.poi.xssf.streaming.SXSSFRow;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -20,26 +22,46 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.stream.Stream;
 
-@Slf4j
 public class ExcelHandler<T> {
+
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
+
+    private final String title;
+    private final String subtitle;
 
     private final SXSSFWorkbook wb;
     private SXSSFSheet sheet;
-    private final ExcelColumns<T> columns;
-    private final ExcelCursor cursor;
+    private ExcelColumn<T>[] columns;
+    private ExcelCursor cursor;
 
-    private int maxRowsOfSheet = 10_000;
 
-    public void setMaxRowsOfSheet(int maxRowsOfSheet) {
-        this.maxRowsOfSheet = maxRowsOfSheet;
+    private final Class<T> rowDataClass;
+    private final boolean isEntity;
+    private int maxRowsOfSheet = 1000_000;
+
+    public ExcelHandler(String title, String subtitle, Class<T> rowObjectClass) {
+        this.title = title;
+        this.subtitle = subtitle;
+        this.rowDataClass = rowObjectClass;
+        this.isEntity = rowObjectClass.isAnnotationPresent(Entity.class);
+
+        this.wb = new SXSSFWorkbook(10000);
     }
 
-    public ExcelHandler(String title, String subtitle, ExcelColumns<T> columns) {
-        this.wb = new SXSSFWorkbook(10000);
-        this.sheet = wb.createSheet();
-
+    @SafeVarargs
+    public final ExcelHandler<T> columns(ExcelColumn<T>... columns) {
         this.columns = columns;
-        this.cursor = new ExcelCursor(columns.getSize());
+        this.cursor = new ExcelCursor(columns.length);
+        return this;
+    }
+
+    public ExcelHandler<T> write(Stream<T> stream, ExcelConsumer<T> consumer) {
+        if (this.columns == null || this.columns.length < 2) {
+            throw new RuntimeException("columns setting required");
+        }
+
+        this.sheet = wb.createSheet();
+        this.cursor = new ExcelCursor(columns.length);
 
         SXSSFRow titleRow = sheet.createRow(cursor.getRowOfSheet());
         CellStyle titleStyle = titleStyle(titleRow);
@@ -49,14 +71,25 @@ public class ExcelHandler<T> {
         SXSSFRow headRow = sheet.createRow(cursor.getRowOfSheet());
         cursor.plusRow();
 
-        setTitleAndSubTitle(title, subtitle, titleRow, titleStyle, subTitleRow, subtitleStyle);
-        setColumnHeaders(columns, headerStyle, headRow);
+        setTitleAndSubTitle(titleRow, titleStyle, subTitleRow, subtitleStyle);
+        setColumnHeaders(headerStyle, headRow);
+
+        stream.forEach((rowData) -> {
+            this.handleRowData(rowData);
+            consumer.accept(rowData, cursor);
+        });
+        return this;
     }
 
-    private void setColumnHeaders(ExcelColumns<T> columns, CellStyle headerStyle, SXSSFRow headRow) {
+    public ExcelHandler<T> write(Stream<T> stream) {
+        this.write(stream, (rowData, consumer) -> {});
+        return this;
+    }
+
+    private void setColumnHeaders(CellStyle headerStyle, SXSSFRow headRow) {
         for (int j = 0; j < cursor.getColumnCount(); j++) {
             SXSSFCell cell = headRow.createCell(j);
-            ExcelColumn<T> column = columns.get(j);
+            ExcelColumn<T> column = columns[j];
             cell.setCellValue(column.getName());
             CellStyle nowStyle = wb.createCellStyle();
 
@@ -68,19 +101,19 @@ public class ExcelHandler<T> {
             nowStyle.setBorderBottom(BorderStyle.THIN);
             nowStyle.setBorderLeft(BorderStyle.THIN);
             nowStyle.setBorderRight(BorderStyle.THIN);
-            columns.get(j).setStyle(nowStyle);
+            columns[j].setStyle(nowStyle);
             cell.setCellStyle(headerStyle);
         }
     }
 
-    private void setTitleAndSubTitle(String title, String subtitle, SXSSFRow titleRow, CellStyle titleStyle, SXSSFRow subTitleRow, CellStyle subtitleStyle) {
+    private void setTitleAndSubTitle(SXSSFRow titleRow, CellStyle titleStyle, SXSSFRow subTitleRow, CellStyle subtitleStyle) {
         for (int j = 0; j < cursor.getColumnCount(); j++) {
             SXSSFCell titleRowCell = titleRow.createCell(j);
-            titleRowCell.setCellValue(title);
+            titleRowCell.setCellValue(this.title);
             titleRowCell.setCellStyle(titleStyle);
 
             Cell subTitleRowCell = subTitleRow.createCell(j);
-            subTitleRowCell.setCellValue(subtitle != null ? subtitle : "");
+            subTitleRowCell.setCellValue(this.subtitle != null ? this.subtitle : "");
             subTitleRowCell.setCellStyle(subtitleStyle);
         }
     }
@@ -154,11 +187,7 @@ public class ExcelHandler<T> {
         }
     }
 
-    public void write(Stream<T> stream) {
-        stream.forEach(this::handleRowData);
-    }
-
-    private void handleRowData(T rowData) {
+    public void handleRowData(T rowData) {
         cursor.plusTotal();
         if (isOverMaxRows()) {
             turnOverSheet();
@@ -168,8 +197,8 @@ public class ExcelHandler<T> {
 
         for (int j = 0; j < cursor.getColumnCount(); j++) {
             SXSSFCell cell = row.createCell(j);
-            ExcelColumn<T> column = columns.get(j);
-            Object columnData = columns.get(j).applyFunction(rowData, cursor);
+            ExcelColumn<T> column = columns[j];
+            Object columnData = columns[j].applyFunction(rowData, cursor);
             String columnDataStr = String.valueOf(columnData);
             setColumnData(cell, column, columnData, columnDataStr);
             cell.setCellStyle(column.getStyle());
@@ -221,6 +250,14 @@ public class ExcelHandler<T> {
 
     private boolean isOverMaxRows() {
         return cursor.getCurrentTotal() >= maxRowsOfSheet && cursor.getCurrentTotal() % maxRowsOfSheet == 1;
+    }
+
+    public ExcelColumn<T> column(String name, ExcelRowFunction<T, Object> function) {
+        return new ExcelColumn<>(name, function);
+    }
+
+    public void setMaxRowsOfSheet(int maxRowsOfSheet) {
+        this.maxRowsOfSheet = maxRowsOfSheet;
     }
 
 }
